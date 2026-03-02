@@ -1,0 +1,53 @@
+{
+  "name": "@cryptoapis-io/mcp-address-latest",
+  "version": "0.1.0",
+  "description": "MCP server for retrieving current balance and state for EVM, UTXO, Solana, XRP, and Kaspa addresses via Crypto APIs",
+  "license": "MIT",
+  "author": "Crypto APIs, Inc.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CryptoAPIs-io/cryptoapis-mcp-address-latest.git"
+  },
+  "keywords": [
+    "mcp",
+    "cryptoapis",
+    "blockchain",
+    "address",
+    "balance",
+    "evm",
+    "utxo",
+    "solana",
+    "xrp",
+    "kaspa"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "bin": {
+    "cryptoapis-mcp-address-latest": "dist/cli.js"
+  },
+  "dependencies": {
+    "@cryptoapis-io/mcp-shared": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "express": "^4.19.2",
+    "zod": "^3.25.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/cli.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "node -e \"console.log('lint: add eslint if you want')\"",
+    "test": "node -e \"console.log('test: add later')\"",
+    "clean": "rimraf dist"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6"
+  }
+}
