@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.CryptoAPIs-io/mcp-address-latest",
-  "description": "MCP server for retrieving current balance and state for EVM, UTXO, Solana, XRP, and Kaspa addresses via Crypto APIs",
+  "description": "MCP server for current balance and state of EVM, UTXO, Solana, XRP, Kaspa addresses via Crypto APIs",
   "repository": {
     "url": "https://github.com/CryptoAPIs-io/cryptoapis-mcp-address-latest",
     "source": "github"
   },
-  "version": "0.2.2",
+  "version": "0.2.3",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@cryptoapis-io/mcp-address-latest",
-      "version": "0.2.2",
+      "version": "0.2.3",
       "transport": {
         "type": "stdio"
       },
