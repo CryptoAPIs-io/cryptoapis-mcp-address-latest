@@ -1,5 +1,13 @@
 # @cryptoapis-io/mcp-address-latest
 
+## 0.2.4
+
+### Patch Changes
+
+- Fix supply-chain vulnerabilities: update @modelcontextprotocol/sdk to ^1.27.1, express to ^4.22.1, add security warning to signer tool descriptions
+- Updated dependencies
+  - @cryptoapis-io/mcp-shared@0.2.3
+
 ## 0.2.3
 
 ### Patch Changes
