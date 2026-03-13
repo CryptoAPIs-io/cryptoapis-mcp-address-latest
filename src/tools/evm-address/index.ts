@@ -1,4 +1,4 @@
-import type { CryptoApisHttpClient, RequestResult } from "@cryptoapis-io/mcp-shared";
+import type { CryptoApisHttpClient, McpLogger, RequestResult } from "@cryptoapis-io/mcp-shared";
 import { EVM_BLOCKCHAIN_NETWORK_DESCRIPTION } from "@cryptoapis-io/mcp-shared";
 import type { McpToolDef } from "../types.js";
 import { EvmAddressToolSchema, type EvmAddressInput } from "./schema.js";
@@ -34,7 +34,7 @@ ${EVM_BLOCKCHAIN_NETWORK_DESCRIPTION}`,
     },
     inputSchema: EvmAddressToolSchema,
     handler:
-        (client: CryptoApisHttpClient) =>
+        (client: CryptoApisHttpClient, logger: McpLogger) =>
         async (input: EvmAddressInput) => {
             let result: RequestResult<unknown>;
 
@@ -76,7 +76,20 @@ ${EVM_BLOCKCHAIN_NETWORK_DESCRIPTION}`,
                         sortingOrder: input.sortingOrder,
                     });
                     break;
+                default:
+                    throw new Error(`Unknown action: ${(input as any).action}`);
             }
+
+            logger.logInfo({
+                tool: "evm_address_latest",
+                action: input.action,
+                blockchain: input.blockchain,
+                network: input.network,
+                creditsConsumed: result.creditsConsumed,
+                creditsAvailable: result.creditsAvailable,
+                responseTime: result.responseTime,
+                throughputUsage: result.throughputUsage,
+            });
 
             return {
                 content: [{ type: "text", text: JSON.stringify({

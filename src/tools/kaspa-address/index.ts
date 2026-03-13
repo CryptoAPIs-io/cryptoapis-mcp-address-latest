@@ -1,4 +1,4 @@
-import type { CryptoApisHttpClient, RequestResult } from "@cryptoapis-io/mcp-shared";
+import type { CryptoApisHttpClient, McpLogger, RequestResult } from "@cryptoapis-io/mcp-shared";
 import type { McpToolDef } from "../types.js";
 import { KaspaAddressToolSchema, type KaspaAddressInput } from "./schema.js";
 import { handleGetBalance } from "./get-balance/index.js";
@@ -21,7 +21,7 @@ Networks: mainnet (only)`,
     },
     inputSchema: KaspaAddressToolSchema,
     handler:
-        (client: CryptoApisHttpClient) =>
+        (client: CryptoApisHttpClient, logger: McpLogger) =>
         async (input: KaspaAddressInput) => {
             let result: RequestResult<unknown>;
 
@@ -42,7 +42,20 @@ Networks: mainnet (only)`,
                         startingAfter: input.startingAfter,
                     });
                     break;
+                default:
+                    throw new Error(`Unknown action: ${(input as any).action}`);
             }
+
+            logger.logInfo({
+                tool: "kaspa_address_latest",
+                action: input.action,
+                blockchain: "kaspa",
+                network: input.network,
+                creditsConsumed: result.creditsConsumed,
+                creditsAvailable: result.creditsAvailable,
+                responseTime: result.responseTime,
+                throughputUsage: result.throughputUsage,
+            });
 
             return {
                 content: [{ type: "text", text: JSON.stringify({

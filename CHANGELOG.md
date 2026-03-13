@@ -1,5 +1,16 @@
 # @cryptoapis-io/mcp-address-latest
 
+## 0.3.0
+
+### Minor Changes
+
+- Add MCP logging, resources, and prompts across all packages. Add debug-level tool call logging, replace console.error with McpLogger, remove .refine() from schemas for MCP client compatibility, and fix supply-chain vulnerabilities.
+
+### Patch Changes
+
+- Updated dependencies
+  - @cryptoapis-io/mcp-shared@0.3.0
+
 ## 0.2.4
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@cryptoapis-io/mcp-address-latest",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "MCP server for current balance and state of EVM, UTXO, Solana, XRP, Kaspa addresses via Crypto APIs",
   "license": "MIT",
   "author": "Crypto APIs, Inc.",

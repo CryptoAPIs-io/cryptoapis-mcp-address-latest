@@ -1,4 +1,4 @@
-import type { CryptoApisHttpClient, RequestResult } from "@cryptoapis-io/mcp-shared";
+import type { CryptoApisHttpClient, McpLogger, RequestResult } from "@cryptoapis-io/mcp-shared";
 import { UTXO_BLOCKCHAIN_NETWORK_DESCRIPTION } from "@cryptoapis-io/mcp-shared";
 import type { McpToolDef } from "../types.js";
 import { UtxoAddressToolSchema, type UtxoAddressInput } from "./schema.js";
@@ -29,7 +29,7 @@ ${UTXO_BLOCKCHAIN_NETWORK_DESCRIPTION}`,
     },
     inputSchema: UtxoAddressToolSchema,
     handler:
-        (client: CryptoApisHttpClient) =>
+        (client: CryptoApisHttpClient, logger: McpLogger) =>
         async (input: UtxoAddressInput) => {
             let result: RequestResult<unknown>;
 
@@ -58,7 +58,20 @@ ${UTXO_BLOCKCHAIN_NETWORK_DESCRIPTION}`,
                         offset: input.offset,
                     });
                     break;
+                default:
+                    throw new Error(`Unknown action: ${(input as any).action}`);
             }
+
+            logger.logInfo({
+                tool: "utxo_address_latest",
+                action: input.action,
+                blockchain: input.blockchain,
+                network: input.network,
+                creditsConsumed: result.creditsConsumed,
+                creditsAvailable: result.creditsAvailable,
+                responseTime: result.responseTime,
+                throughputUsage: result.throughputUsage,
+            });
 
             return {
                 content: [{ type: "text", text: JSON.stringify({

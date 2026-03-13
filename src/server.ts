@@ -5,8 +5,10 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
-import { loadSharedConfig, CryptoApisHttpClient, formatCreditsForDescription, runWithApiKey } from "@cryptoapis-io/mcp-shared";
+import { CryptoApisHttpClient, formatCreditsForDescription, loadSharedConfig, McpLogger, runWithApiKey } from "@cryptoapis-io/mcp-shared";
 import { tools } from "./tools/index.js";
+import { registerResources } from "./resources/index.js";
+import { registerPrompts } from "./prompts/index.js";
 
 const CRYPTOAPIS_SERVER_INFO = {
     name: "cryptoapis-address-latest",
@@ -22,13 +24,29 @@ const CRYPTOAPIS_SERVER_INFO = {
 // Build an MCP server instance with tools registered
 function buildServer(client: CryptoApisHttpClient) {
     const server = new McpServer(CRYPTOAPIS_SERVER_INFO);
+    const logger = new McpLogger((params) => server.sendLoggingMessage(params), CRYPTOAPIS_SERVER_INFO.name);
+
     for (const t of tools) {
         const description =
             t.credits != null ? `${t.description}\n\n${formatCreditsForDescription(t.credits)}` : t.description;
-        server.registerTool(t.name, { description, inputSchema: t.inputSchema }, t.handler(client));
+        server.registerTool(t.name, { description, inputSchema: t.inputSchema }, (input: Record<string, unknown>) => {
+            logger.logDebug({ tool: t.name, event: "tool_call", input });
+            return t.handler(client, logger)(input as never).catch((err: unknown) => {
+                logger.logError(err instanceof Error ? err.message : String(err), {
+                    tool: t.name,
+                    action: input.action,
+                    blockchain: input.blockchain,
+                    network: input.network,
+                });
+                throw err;
+            });
+        });
     }
 
-    return server;
+    registerResources(server);
+    registerPrompts(server);
+
+    return { server, logger };
 }
 
 export type StartOptions =
@@ -39,13 +57,13 @@ export async function startAddressLatestServer(opts: StartOptions) {
     const isHttp = opts.transport === "http";
     const cfg = loadSharedConfig({ apiKey: opts.apiKey, allowMissingApiKey: isHttp });
     const client = new CryptoApisHttpClient(cfg);
-    const server = buildServer(client);
+    const { server, logger } = buildServer(client);
 
     if (opts.transport === "stdio") {
         // IMPORTANT: don't write to stdout for stdio transport (it breaks JSON-RPC stream)
         const transport = new StdioServerTransport();
         await server.connect(transport);
-        console.error("cryptoapis-address-latest MCP running (stdio)");
+        logger.logInfo("cryptoapis-address-latest MCP running (stdio)");
         return;
     }
 
@@ -76,12 +94,12 @@ export async function startAddressLatestServer(opts: StartOptions) {
     app.get("/health", (_req, res) => res.status(200).json({ ok: true }));
 
     app.listen(port, host, () => {
-        console.error(`cryptoapis-address-latest MCP running (http) at http://${host}:${port}${path}`);
-        console.error(`mode: ${stateless ? "stateless" : "stateful"}`);
+        logger.logInfo(`cryptoapis-address-latest MCP running (http) at http://${host}:${port}${path}`);
+        logger.logInfo(`mode: ${stateless ? "stateless" : "stateful"}`);
         if (cfg.apiKey) {
-            console.error("API key: provided at startup — x-api-key request headers will be ignored");
+            logger.logInfo("API key: provided at startup — x-api-key request headers will be ignored");
         } else {
-            console.error("API key: not provided — each request must include x-api-key header");
+            logger.logInfo("API key: not provided — each request must include x-api-key header");
         }
     });
 }

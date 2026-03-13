@@ -1,4 +1,4 @@
-import type { CryptoApisHttpClient, RequestResult } from "@cryptoapis-io/mcp-shared";
+import type { CryptoApisHttpClient, McpLogger, RequestResult } from "@cryptoapis-io/mcp-shared";
 import type { McpToolDef } from "../types.js";
 import { SolanaAddressToolSchema, type SolanaAddressInput } from "./schema.js";
 import { handleGetBalance } from "./get-balance/index.js";
@@ -25,7 +25,7 @@ Networks: mainnet, devnet`,
     },
     inputSchema: SolanaAddressToolSchema,
     handler:
-        (client: CryptoApisHttpClient) =>
+        (client: CryptoApisHttpClient, logger: McpLogger) =>
         async (input: SolanaAddressInput) => {
             let result: RequestResult<unknown>;
 
@@ -49,7 +49,20 @@ Networks: mainnet, devnet`,
                 case "list-tokens":
                     result = await handleListTokens(client, baseParams);
                     break;
+                default:
+                    throw new Error(`Unknown action: ${(input as any).action}`);
             }
+
+            logger.logInfo({
+                tool: "solana_address_latest",
+                action: input.action,
+                blockchain: "solana",
+                network: input.network,
+                creditsConsumed: result.creditsConsumed,
+                creditsAvailable: result.creditsAvailable,
+                responseTime: result.responseTime,
+                throughputUsage: result.throughputUsage,
+            });
 
             return {
                 content: [{ type: "text", text: JSON.stringify({
