@@ -1,7 +1,7 @@
 import type { CryptoApisHttpClient, McpLogger, RequestResult } from "@cryptoapis-io/mcp-shared";
 import { EVM_BLOCKCHAIN_NETWORK_DESCRIPTION } from "@cryptoapis-io/mcp-shared";
 import type { McpToolDef } from "../types.js";
-import { EvmAddressToolSchema, type EvmAddressInput } from "./schema.js";
+import { EvmAddressToolSchema, type EvmAddressInput, ACTION_BLOCKCHAINS, ACTION_NETWORKS } from "./schema.js";
 import { handleGetBalance } from "./get-balance/index.js";
 import { credits as getBalanceCredits } from "./get-balance/credits.js";
 import { handleGetNextNonce } from "./get-next-nonce/index.js";
@@ -36,6 +36,19 @@ ${EVM_BLOCKCHAIN_NETWORK_DESCRIPTION}`,
     handler:
         (client: CryptoApisHttpClient, logger: McpLogger) =>
         async (input: EvmAddressInput) => {
+            const allowedBlockchains = ACTION_BLOCKCHAINS[input.action];
+            if (allowedBlockchains && !allowedBlockchains.includes(input.blockchain)) {
+                throw new Error(
+                    `blockchain "${input.blockchain}" is not supported by action "${input.action}". Supported: ${allowedBlockchains.join(", ")}`,
+                );
+            }
+            const allowedNetworks = ACTION_NETWORKS[input.action];
+            if (allowedNetworks && !allowedNetworks.includes(input.network)) {
+                throw new Error(
+                    `network "${input.network}" is not supported by action "${input.action}". Supported: ${allowedNetworks.join(", ")}`,
+                );
+            }
+
             let result: RequestResult<unknown>;
 
             const baseParams = {

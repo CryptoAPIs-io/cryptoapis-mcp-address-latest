@@ -1,6 +1,6 @@
 {
   "name": "@cryptoapis-io/mcp-address-latest",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "MCP server for current balance and state of EVM, UTXO, Solana, XRP, Kaspa addresses via Crypto APIs",
   "license": "MIT",
   "author": "Crypto APIs, Inc.",
@@ -36,9 +36,8 @@
     "cryptoapis-mcp-address-latest": "dist/cli.js"
   },
   "dependencies": {
-    "@cryptoapis-io/mcp-shared": "^0.3.0",
+    "@cryptoapis-io/mcp-shared": "^0.4.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
-    "express": "^4.22.1",
     "zod": "^3.25.0"
   },
   "scripts": {
@@ -50,7 +49,6 @@
     "clean": "rimraf dist"
   },
   "devDependencies": {
-    "@types/express": "^5.0.6",
     "@types/node": "^25.0.3",
     "typescript": "^5.5.4"
   }
