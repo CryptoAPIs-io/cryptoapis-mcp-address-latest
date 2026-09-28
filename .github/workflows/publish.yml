@@ -7,8 +7,9 @@ name: Publish to npm (with provenance)
 # The file is copied in by scripts/publish-github.sh from scripts/standalone/publish.yml on
 # every sync, so edit it THERE — a change made here is wiped by the next sync.
 #
-# TRIGGER: publish a GitHub Release tagged v<package.json version> (publish-github.sh --tag
-# vX.Y.Z --push, then `gh release create vX.Y.Z --verify-tag`), or run manually.
+# TRIGGER: publish a GitHub Release tagged v<package.json version> (publish-github.sh
+# --tag, then `gh release create <tag> --verify-tag`), or run manually. Package dir: .
+# (both are filled in by publish-github.sh).
 #
 # REQUIREMENT: a trusted publisher on npmjs.com for this package — this repo, workflow
 # publish.yml, environment npm-publish. Run the workflow with dry_run=true to check it: the
@@ -35,8 +36,13 @@ concurrency:
 
 jobs:
   publish:
+    # Only this package's release tags publish; any other release in the repo is ignored.
+    if: github.event_name != 'release' || startsWith(github.ref_name, 'v')
     runs-on: ubuntu-latest
     environment: npm-publish
+    defaults:
+      run:
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
 
@@ -56,7 +62,7 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Build
-        run: npm run build
+        run: npm run build --if-present
 
       - name: Typecheck
         run: npm run typecheck --if-present
