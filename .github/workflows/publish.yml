@@ -1,0 +1,106 @@
+name: Publish to npm (with provenance)
+
+# Publishes this package to npmjs.org with a Sigstore provenance attestation linking it to
+# this repo, commit and build — via npm TRUSTED PUBLISHING (GitHub OIDC; no NPM_TOKEN).
+#
+# GENERATED: this repo is a split of the private CryptoAPIs-io/cryptoapis-mcp monorepo.
+# The file is copied in by scripts/publish-github.sh from scripts/standalone/publish.yml on
+# every sync, so edit it THERE — a change made here is wiped by the next sync.
+#
+# TRIGGER: publish a GitHub Release tagged v<package.json version> (publish-github.sh --tag
+# vX.Y.Z --push, then `gh release create vX.Y.Z --verify-tag`), or run manually.
+#
+# REQUIREMENT: a trusted publisher on npmjs.com for this package — this repo, workflow
+# publish.yml, environment npm-publish. Run the workflow with dry_run=true to check it: the
+# dry run performs the OIDC token exchange and fails if npm refuses it.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and check the trusted-publisher exchange, without publishing"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+  id-token: write # required for npm provenance (OIDC)
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    steps:
+      - uses: actions/checkout@v4
+
+      # No `cache: npm`: a split repo has no lockfile to key the cache on.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing (OIDC) requires npm >= 11.5.1.
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
+      # `npm install`, not `npm ci`: the split repo carries no lockfile. Sibling
+      # @cryptoapis-io/* deps resolve from the registry, so they must be published first.
+      - name: Install
+        run: npm install --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+
+      - name: Typecheck
+        run: npm run typecheck --if-present
+
+      - name: Test
+        run: npm test --if-present
+
+      - name: Verify release tag matches the package version
+        if: github.event_name == 'release'
+        run: |
+          PKG_VERSION="v$(node -p "require('./package.json').version")"
+          TAG="${GITHUB_REF_NAME}"
+          echo "package.json → $PKG_VERSION | release tag → $TAG"
+          if [ "$PKG_VERSION" != "$TAG" ]; then
+            echo "::error::Release tag $TAG does not match package.json version $PKG_VERSION"
+            exit 1
+          fi
+
+      # Same exchange `npm publish` makes. 2xx = trusted publisher configured for this repo +
+      # workflow + environment; 404 "package not found" = not configured on npmjs.com.
+      - name: Check trusted publisher
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          ID_TOKEN=$(curl -sf -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=npm:registry.npmjs.org" | node -pe 'JSON.parse(require("fs").readFileSync(0)).value')
+          STATUS=$(curl -s -o /tmp/exchange.json -w '%{http_code}' -X POST -H "Authorization: Bearer $ID_TOKEN" \
+            "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/$(node -pe 'encodeURIComponent(process.argv[1])' "$NAME")")
+          echo "trusted-publishing exchange for $NAME: $STATUS"
+          if [[ "$STATUS" != 2* ]]; then
+            echo "  $(head -c 300 /tmp/exchange.json)"
+            echo "::error::no npm trusted publisher for $NAME — add one on npmjs.com (repo $GITHUB_REPOSITORY, workflow publish.yml, environment npm-publish)"
+            exit 1
+          fi
+          rm -f /tmp/exchange.json
+
+      - name: Publish with provenance
+        if: github.event_name == 'release' || !inputs.dry_run
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          # Idempotent: a re-run release, or a version already published from a laptop,
+          # is a no-op rather than an E403.
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "::notice::$NAME@$VERSION is already on npm — nothing to publish"
+            exit 0
+          fi
+          npm publish --provenance --access public
