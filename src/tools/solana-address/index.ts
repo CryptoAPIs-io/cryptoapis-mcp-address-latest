@@ -1,3 +1,4 @@
+import { READ_ONLY_TOOL } from "@cryptoapis-io/mcp-shared";
 import type { CryptoApisHttpClient, McpLogger, RequestResult } from "@cryptoapis-io/mcp-shared";
 import type { McpToolDef } from "../types.js";
 import { SolanaAddressToolSchema, type SolanaAddressInput } from "./schema.js";
@@ -10,6 +11,8 @@ import { credits as listTokensCredits } from "./list-tokens/credits.js";
 
 export const solanaAddressTool: McpToolDef<typeof SolanaAddressToolSchema> = {
     name: "solana_address_latest",
+    title: "Solana address balance and latest activity",
+    annotations: READ_ONLY_TOOL,
     description: `Query latest Solana address data (last 14 days). Cursor pagination: use 'nextStartingAfter' from response as 'startingAfter'.
 
 Actions:

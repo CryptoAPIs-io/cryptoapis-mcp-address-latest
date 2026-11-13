@@ -1,3 +1,4 @@
+import { READ_ONLY_TOOL } from "@cryptoapis-io/mcp-shared";
 import type { CryptoApisHttpClient, McpLogger, RequestResult } from "@cryptoapis-io/mcp-shared";
 import type { McpToolDef } from "../types.js";
 import { XrpAddressToolSchema, type XrpAddressInput } from "./schema.js";
@@ -10,6 +11,8 @@ import { credits as getNextSequenceCredits } from "./get-next-sequence/credits.j
 
 export const xrpAddressTool: McpToolDef<typeof XrpAddressToolSchema> = {
     name: "xrp_address_latest",
+    title: "XRP address balance and latest activity",
+    annotations: READ_ONLY_TOOL,
     description: `Query latest XRP (Ripple) address data. Cursor pagination: use 'nextStartingAfter' from response as 'startingAfter'.
 
 Actions:

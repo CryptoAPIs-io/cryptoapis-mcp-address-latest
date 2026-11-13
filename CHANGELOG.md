@@ -1,5 +1,16 @@
 # @cryptoapis-io/mcp-address-latest
 
+## 0.5.0
+
+### Minor Changes
+
+- 59200e2: Every tool now has a title and MCP tool annotations (readOnlyHint, destructiveHint, idempotentHint, openWorldHint), so clients can tell read tools from writes and ask before a delete or a broadcast. mcp-shared exports the presets: READ_ONLY_TOOL, WRITE_TOOL, DESTRUCTIVE_TOOL, LOCAL_READ_ONLY_TOOL.
+
+### Patch Changes
+
+- Updated dependencies [59200e2]
+  - @cryptoapis-io/mcp-shared@0.5.0
+
 ## 0.4.0
 
 ### Minor Changes

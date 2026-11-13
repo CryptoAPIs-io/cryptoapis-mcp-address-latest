@@ -1,3 +1,4 @@
+import { READ_ONLY_TOOL } from "@cryptoapis-io/mcp-shared";
 import type { CryptoApisHttpClient, McpLogger, RequestResult } from "@cryptoapis-io/mcp-shared";
 import { EVM_BLOCKCHAIN_NETWORK_DESCRIPTION } from "@cryptoapis-io/mcp-shared";
 import type { McpToolDef } from "../types.js";
@@ -15,6 +16,8 @@ import { credits as listInternalTransactionsCredits } from "./list-internal-tran
 
 export const evmAddressTool: McpToolDef<typeof EvmAddressToolSchema> = {
     name: "evm_address_latest",
+    title: "EVM address balance and latest activity",
+    annotations: READ_ONLY_TOOL,
     description: `Query latest EVM address data (last 14 days). Cursor pagination: use 'nextStartingAfter' from response as 'startingAfter'.
 
 Actions & supported blockchains:

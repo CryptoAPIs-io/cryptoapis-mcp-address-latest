@@ -1,3 +1,4 @@
+import { READ_ONLY_TOOL } from "@cryptoapis-io/mcp-shared";
 import type { CryptoApisHttpClient, McpLogger, RequestResult } from "@cryptoapis-io/mcp-shared";
 import type { McpToolDef } from "../types.js";
 import { KaspaAddressToolSchema, type KaspaAddressInput } from "./schema.js";
@@ -8,6 +9,8 @@ import { credits as listTransactionsCredits } from "./list-transactions/credits.
 
 export const kaspaAddressTool: McpToolDef<typeof KaspaAddressToolSchema> = {
     name: "kaspa_address_latest",
+    title: "Kaspa address balance and latest activity",
+    annotations: READ_ONLY_TOOL,
     description: `Query latest Kaspa address data. Cursor pagination: use 'nextStartingAfter' from response as 'startingAfter'.
 
 Actions:

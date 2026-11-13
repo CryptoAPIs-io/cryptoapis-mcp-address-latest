@@ -1,3 +1,4 @@
+import { READ_ONLY_TOOL } from "@cryptoapis-io/mcp-shared";
 import type { CryptoApisHttpClient, McpLogger, RequestResult } from "@cryptoapis-io/mcp-shared";
 import { UTXO_BLOCKCHAIN_NETWORK_DESCRIPTION } from "@cryptoapis-io/mcp-shared";
 import type { McpToolDef } from "../types.js";
@@ -11,6 +12,8 @@ import { credits as listUnconfirmedTransactionsCredits } from "./list-unconfirme
 
 export const utxoAddressTool: McpToolDef<typeof UtxoAddressToolSchema> = {
     name: "utxo_address_latest",
+    title: "UTXO address balance and latest activity",
+    annotations: READ_ONLY_TOOL,
     description: `Query latest UTXO address data (last 14 days).
 • get-balance: no pagination
 • list-transactions: cursor pagination - use 'nextStartingAfter' from response as 'startingAfter'
